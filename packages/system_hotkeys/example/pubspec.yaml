@@ -1,0 +1,20 @@
+name: system_hotkeys_example
+description: Binds two shortcuts and shows every press, focused or not.
+publish_to: none
+version: 1.0.0
+
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  system_hotkeys: ^0.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

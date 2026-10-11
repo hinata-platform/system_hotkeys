@@ -1,0 +1,27 @@
+name: system_hotkeys_macos
+description: The macOS implementation of system_hotkeys, system-wide keyboard shortcuts through RegisterEventHotKey. No event tap, no Accessibility permission, works in the App Sandbox.
+version: 0.1.0
+repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_macos
+issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
+topics: [hotkeys, shortcuts, macos, keyboard]
+
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  system_hotkeys_platform_interface: ^0.1.0
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    implements: system_hotkeys
+    platforms:
+      macos:
+        pluginClass: SystemHotkeysMacosPlugin

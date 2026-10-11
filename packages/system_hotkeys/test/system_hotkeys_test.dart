@@ -1,0 +1,59 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:system_hotkeys/system_hotkeys.dart';
+import 'package:system_hotkeys_platform_interface/system_hotkeys_platform_interface.dart';
+
+class _FakePlatform extends SystemHotkeysPlatform
+    with MockPlatformInterfaceMixin {
+  final bound = <String, HotKey>{};
+  final presses = StreamController<HotKeyEvent>.broadcast();
+  HotKeyResult next = HotKeyResult.bound;
+
+  @override
+  Future<HotKeyResult> register(String id, HotKey hotKey) async {
+    bound.remove(id);
+    if (next == HotKeyResult.bound) bound[id] = hotKey;
+    return next;
+  }
+
+  @override
+  Future<void> unregister(String id) async => bound.remove(id);
+
+  @override
+  Future<void> unregisterAll() async => bound.clear();
+
+  @override
+  Stream<HotKeyEvent> get events => presses.stream;
+}
+
+void main() {
+  late _FakePlatform platform;
+  setUp(() => SystemHotkeysPlatform.instance = platform = _FakePlatform());
+
+  const combo = HotKey(
+    key: PhysicalKeyboardKey.keyF,
+    modifiers: {HotKeyModifier.control, HotKeyModifier.shift},
+  );
+
+  test('forwards to the platform', () async {
+    expect(await SystemHotkeys.register('focus', combo), HotKeyResult.bound);
+    expect(platform.bound, {'focus': combo});
+    await SystemHotkeys.unregister('focus');
+    expect(platform.bound, isEmpty);
+  });
+
+  test('a failed rebind leaves the id released', () async {
+    await SystemHotkeys.register('focus', combo);
+    platform.next = HotKeyResult.conflict;
+    expect(await SystemHotkeys.register('focus', combo), HotKeyResult.conflict);
+    expect(platform.bound, isEmpty);
+  });
+
+  test('passes presses through by id', () async {
+    final first = SystemHotkeys.events.first;
+    platform.presses.add(const HotKeyEvent('focus'));
+    expect(await first, const HotKeyEvent('focus'));
+  });
+}

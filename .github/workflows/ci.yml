@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Pinned like the app that uses it, so a new stable's formatter is a deliberate
+# bump and not a red build nobody caused.
+env:
+  FLUTTER_VERSION: 3.47.0
+
+jobs:
+  dart:
+    name: analyze & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - name: Test
+        run: |
+          set -e
+          for dir in packages/system_hotkeys packages/system_hotkeys_platform_interface; do
+            (cd "$dir" && flutter test)
+          done
+      - name: Dry-run publish
+        run: |
+          set -e
+          for dir in packages/*/; do
+            (cd "$dir" && flutter pub publish --dry-run) || exit 1
+          done
+
+  build:
+    name: example builds on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            target: macos
+          - os: windows-latest
+            target: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - run: flutter pub get
+      - name: Build the example
+        working-directory: packages/system_hotkeys/example
+        run: flutter build ${{ matrix.target }} --debug

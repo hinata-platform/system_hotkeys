@@ -1,0 +1,22 @@
+name: system_hotkeys_platform_interface
+description: The common platform interface for the system_hotkeys plugin, system-wide keyboard shortcuts through the operating system's registration APIs.
+version: 0.1.0
+repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_platform_interface
+issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
+topics: [hotkeys, shortcuts, desktop, keyboard]
+
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

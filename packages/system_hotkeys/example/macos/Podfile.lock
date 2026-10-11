@@ -1,0 +1,22 @@
+PODS:
+  - FlutterMacOS (1.0.0)
+  - system_hotkeys_macos (0.1.0):
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - system_hotkeys_macos (from `Flutter/ephemeral/.symlinks/plugins/system_hotkeys_macos/macos`)
+
+EXTERNAL SOURCES:
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  system_hotkeys_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/system_hotkeys_macos/macos
+
+SPEC CHECKSUMS:
+  FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
+  system_hotkeys_macos: d3723a6f44139646bbfe99d9ebf47b18dc0db416
+
+PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
+
+COCOAPODS: 1.16.2

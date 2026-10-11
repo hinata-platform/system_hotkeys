@@ -1,0 +1,13 @@
+name: _system_hotkeys_workspace
+description: Development-only workspace root for the system_hotkeys packages. Not published.
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+workspace:
+  - packages/system_hotkeys
+  - packages/system_hotkeys/example
+  - packages/system_hotkeys_macos
+  - packages/system_hotkeys_platform_interface
+  - packages/system_hotkeys_windows

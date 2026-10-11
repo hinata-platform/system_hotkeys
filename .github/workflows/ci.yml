@@ -12,7 +12,7 @@ concurrency:
 # Pinned like the app that uses it, so a new stable's formatter is a deliberate
 # bump and not a red build nobody caused.
 env:
-  FLUTTER_VERSION: 3.47.0
+  FLUTTER_VERSION: 3.47.5
 
 jobs:
   dart:

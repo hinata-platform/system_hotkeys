@@ -1,6 +1,6 @@
 name: system_hotkeys_macos
 description: The macOS implementation of system_hotkeys, system-wide keyboard shortcuts through RegisterEventHotKey. No event tap, no Accessibility permission, works in the App Sandbox.
-version: 0.1.1
+version: 0.1.2
 repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_macos
 issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
 topics: [hotkeys, shortcuts, macos, keyboard]

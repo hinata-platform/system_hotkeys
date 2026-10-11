@@ -7,8 +7,10 @@ import FlutterMacOS
 /// The one API on macOS that delivers a key combination to an app that is not
 /// in front without seeing any other key: no event tap, no keyboard monitor, so
 /// no Accessibility or Input Monitoring permission, and it works in the App
-/// Sandbox. Its `OSStatus` is handed back as is — a combination another app
-/// holds comes back as a conflict, never as silence.
+/// Sandbox. A conflict is reported where macOS lets it be seen: an enabled
+/// system shortcut (`CopySymbolicHotKeys`) and a combination this app already
+/// holds. Another app's shortcut cannot be seen from here — Carbon accepts the
+/// second registration — which is why apps should offer a "press it now" check.
 public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   /// "HSHK", so the handler can tell our hot keys from anyone else's in the
   /// same process.
@@ -57,7 +59,11 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
 
   private func register(id: String, usage: Int, bits: Int) -> String {
     unregister(id: id)
-    guard bits != 0, let keyCode = Self.keyCodes[usage] else { return "unsupported" }
+    // Bits outside the four modifiers are not ours to guess at; none of the
+    // four would bind the bare key in every app.
+    guard bits & ~0xF == 0, bits & 0xF != 0, let keyCode = Self.keyCodes[usage] else {
+      return "unsupported"
+    }
     let modifiers = Self.carbonModifiers(bits)
     // RegisterEventHotKey only refuses a combination this process already
     // holds; one the system reserves (Spotlight, screenshots, Mission Control)
@@ -65,7 +71,7 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
     // shortcut cannot be seen from a sandbox at all — that is what an app's
     // "press it now" self-test is for.
     if Self.systemReserves(keyCode: keyCode, modifiers: modifiers) { return "conflict" }
-    guard installHandler(again: true) else { return "unsupported" }
+    guard reinstallHandler() else { return "unsupported" }
 
     let number = nextNumber
     nextNumber += 1
@@ -103,8 +109,7 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
   /// and whenever the app goes to the background, which is the moment before
   /// someone presses a shortcut in another app. Hot keys that are not ours are
   /// passed on with `eventNotHandledErr`.
-  private func installHandler(again: Bool = false) -> Bool {
-    if handler != nil && !again { return true }
+  private func reinstallHandler() -> Bool {
     if let old = handler {
       RemoveEventHandler(old)
       handler = nil
@@ -133,7 +138,7 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
         forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
       ) { [weak self] _ in
         guard let self, !self.refs.isEmpty else { return }
-        _ = self.installHandler(again: true)
+        _ = self.reinstallHandler()
       }
     }
     return status == noErr

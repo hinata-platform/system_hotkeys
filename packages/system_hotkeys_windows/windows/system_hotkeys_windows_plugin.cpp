@@ -52,48 +52,40 @@ int64_t Number(const flutter::EncodableMap& args, const char* key) {
 
 void SystemHotkeysWindowsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows* registrar) {
-  auto plugin = std::make_unique<SystemHotkeysWindowsPlugin>(registrar);
-  auto* raw = plugin.get();
-
-  auto methods =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "system_hotkeys",
-          &flutter::StandardMethodCodec::GetInstance());
-  methods->SetMethodCallHandler([raw](const auto& call, auto result) {
-    raw->HandleMethodCall(call, std::move(result));
-  });
-
-  auto events =
-      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "system_hotkeys/events",
-          &flutter::StandardMethodCodec::GetInstance());
-  events->SetStreamHandler(
-      std::make_unique<
-          flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
-          [raw](const flutter::EncodableValue*,
-                std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&&
-                    sink)
-              -> std::unique_ptr<
-                  flutter::StreamHandlerError<flutter::EncodableValue>> {
-            raw->sink_ = std::move(sink);
-            return nullptr;
-          },
-          [raw](const flutter::EncodableValue*)
-              -> std::unique_ptr<
-                  flutter::StreamHandlerError<flutter::EncodableValue>> {
-            raw->sink_.reset();
-            return nullptr;
-          }));
-
-  // The channels live as long as the registrar, like the plugin itself.
-  methods.release();
-  events.release();
-  registrar->AddPlugin(std::move(plugin));
+  registrar->AddPlugin(std::make_unique<SystemHotkeysWindowsPlugin>(registrar));
 }
 
 SystemHotkeysWindowsPlugin::SystemHotkeysWindowsPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar_(registrar) {
+  methods_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      registrar->messenger(), "system_hotkeys",
+      &flutter::StandardMethodCodec::GetInstance());
+  methods_->SetMethodCallHandler([this](const auto& call, auto result) {
+    HandleMethodCall(call, std::move(result));
+  });
+
+  events_ = std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+      registrar->messenger(), "system_hotkeys/events",
+      &flutter::StandardMethodCodec::GetInstance());
+  events_->SetStreamHandler(
+      std::make_unique<
+          flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
+          [this](const flutter::EncodableValue*,
+                 std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&&
+                     sink)
+              -> std::unique_ptr<
+                  flutter::StreamHandlerError<flutter::EncodableValue>> {
+            sink_ = std::move(sink);
+            return nullptr;
+          },
+          [this](const flutter::EncodableValue*)
+              -> std::unique_ptr<
+                  flutter::StreamHandlerError<flutter::EncodableValue>> {
+            sink_.reset();
+            return nullptr;
+          }));
+
   window_proc_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
       [this](HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         return HandleWindowProc(hwnd, message, wparam, lparam);
@@ -101,6 +93,8 @@ SystemHotkeysWindowsPlugin::SystemHotkeysWindowsPlugin(
 }
 
 SystemHotkeysWindowsPlugin::~SystemHotkeysWindowsPlugin() {
+  methods_->SetMethodCallHandler(nullptr);
+  events_->SetStreamHandler(nullptr);
   UnregisterAll();
   registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_id_);
 }
@@ -142,11 +136,22 @@ std::string SystemHotkeysWindowsPlugin::Register(const std::string& id,
   Unregister(id);
   const UINT key = VirtualKey(usage);
   const HWND window = Window();
-  if (bits <= 0 || key == 0 || !window) return "unsupported";
+  // Bits outside the four modifiers are not ours to guess at; none of the
+  // four would bind the bare key in every app.
+  if ((bits & ~0xF) != 0 || (bits & 0xF) == 0 || key == 0 || !window) {
+    return "unsupported";
+  }
 
-  // Application hot key ids live in 0x0000 to 0xBFFF.
-  if (next_number_ > 0xBFFF) return "unsupported";
-  const int number = next_number_++;
+  // A number freed by an earlier unregister is used again: application hot
+  // key ids live in 0x0000 to 0xBFFF, and a counter alone would run out.
+  int number = 0;
+  for (int candidate = 1; candidate <= 0xBFFF; ++candidate) {
+    if (ids_.find(candidate) == ids_.end()) {
+      number = candidate;
+      break;
+    }
+  }
+  if (number == 0) return "unsupported";
   if (!RegisterHotKey(window, number, WindowsModifiers(bits), key)) {
     return GetLastError() == ERROR_HOTKEY_ALREADY_REGISTERED ? "conflict"
                                                              : "unsupported";

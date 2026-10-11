@@ -18,8 +18,10 @@ Linux is planned through the XDG GlobalShortcuts portal.
   and nothing else: no event tap, no low-level hook, no keylogging, and no
   Accessibility or Input Monitoring permission. It works in the macOS App
   Sandbox.
-- **Conflicts are reported, not swallowed.** `register` answers `bound`,
-  `conflict` or `unsupported`.
+- **Conflicts are reported where the system shows them.** `register` answers
+  `bound`, `conflict` or `unsupported`. Windows reports any combination another
+  app holds; macOS reports its own shortcuts and those this app holds, but not
+  another app's, so offer a "press it now" check there.
 - **No recorder in the plugin.** Recording a combination is your app's UI; the
   plugin takes a `HotKey` value.
 

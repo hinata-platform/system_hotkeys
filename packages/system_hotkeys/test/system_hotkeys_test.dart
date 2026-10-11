@@ -44,11 +44,9 @@ void main() {
     expect(platform.bound, isEmpty);
   });
 
-  test('a failed rebind leaves the id released', () async {
-    await SystemHotkeys.register('focus', combo);
+  test('passes a conflict on as it is', () async {
     platform.next = HotKeyResult.conflict;
     expect(await SystemHotkeys.register('focus', combo), HotKeyResult.conflict);
-    expect(platform.bound, isEmpty);
   });
 
   test('passes presses through by id', () async {

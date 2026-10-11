@@ -1,6 +1,6 @@
 name: system_hotkeys_windows
 description: The Windows implementation of system_hotkeys, system-wide keyboard shortcuts through RegisterHotKey. No low-level keyboard hook.
-version: 0.1.0
+version: 0.1.2
 repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_windows
 issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
 topics: [hotkeys, shortcuts, windows, keyboard]

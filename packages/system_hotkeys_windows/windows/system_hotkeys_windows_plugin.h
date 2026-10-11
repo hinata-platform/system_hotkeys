@@ -19,6 +19,9 @@ namespace system_hotkeys_windows {
 // WM_HOTKEY for the bound combinations and nothing else, so no other key ever
 // reaches this process. A combination another app holds fails with
 // ERROR_HOTKEY_ALREADY_REGISTERED and is reported as a conflict.
+//
+// The channels are members, so they go with the plugin and no message can
+// reach a plugin that is gone.
 class SystemHotkeysWindowsPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows* registrar);
@@ -44,11 +47,12 @@ class SystemHotkeysWindowsPlugin : public flutter::Plugin {
   HWND Window() const;
 
   flutter::PluginRegistrarWindows* registrar_;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> methods_;
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> events_;
   int window_proc_id_ = -1;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   std::map<std::string, int> numbers_;
   std::map<int, std::string> ids_;
-  int next_number_ = 1;
 };
 
 }  // namespace system_hotkeys_windows

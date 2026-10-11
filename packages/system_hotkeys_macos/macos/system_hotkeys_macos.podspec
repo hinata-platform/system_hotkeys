@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'system_hotkeys_macos'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'System-wide keyboard shortcuts for Flutter on macOS, through RegisterEventHotKey.'
   s.description      = <<-DESC
 System-wide keyboard shortcuts for Flutter on macOS, through RegisterEventHotKey.

@@ -20,6 +20,7 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
   private var nextNumber: UInt32 = 1
   private var handler: EventHandlerRef?
   private var sink: FlutterEventSink?
+  private var resignObserver: NSObjectProtocol?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let instance = SystemHotkeysMacosPlugin()
@@ -64,7 +65,7 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
     // shortcut cannot be seen from a sandbox at all — that is what an app's
     // "press it now" self-test is for.
     if Self.systemReserves(keyCode: keyCode, modifiers: modifiers) { return "conflict" }
-    guard installHandler() else { return "unsupported" }
+    guard installHandler(again: true) else { return "unsupported" }
 
     let number = nextNumber
     nextNumber += 1
@@ -91,14 +92,28 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
     if let number = numbers.removeValue(forKey: id) { ids.removeValue(forKey: number) }
   }
 
-  /// One handler for every hot key, installed on first use.
-  private func installHandler() -> Bool {
-    if handler != nil { return true }
+  /// One handler for every hot key, on the event *dispatcher* target.
+  ///
+  /// Not the application target: another component may sit on the dispatcher
+  /// and claim every hot-key event, ours included, before the application
+  /// target ever sees it — super_native_extensions does exactly that, and an
+  /// app using its clipboard or drag and drop then never received a press.
+  /// Carbon calls the handlers of a target newest first, so this one is
+  /// installed again whenever it might have been buried: on each `register`,
+  /// and whenever the app goes to the background, which is the moment before
+  /// someone presses a shortcut in another app. Hot keys that are not ours are
+  /// passed on with `eventNotHandledErr`.
+  private func installHandler(again: Bool = false) -> Bool {
+    if handler != nil && !again { return true }
+    if let old = handler {
+      RemoveEventHandler(old)
+      handler = nil
+    }
     var spec = EventTypeSpec(
       eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
     let me = Unmanaged.passUnretained(self).toOpaque()
     let status = InstallEventHandler(
-      GetApplicationEventTarget(),
+      GetEventDispatcherTarget(),
       { _, event, context in
         guard let event, let context else { return OSStatus(eventNotHandledErr) }
         var hotKey = EventHotKeyID()
@@ -113,12 +128,21 @@ public class SystemHotkeysMacosPlugin: NSObject, FlutterPlugin, FlutterStreamHan
         plugin.sink?(id)
         return noErr
       }, 1, &spec, me, &handler)
+    if status == noErr && resignObserver == nil {
+      resignObserver = NotificationCenter.default.addObserver(
+        forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
+      ) { [weak self] _ in
+        guard let self, !self.refs.isEmpty else { return }
+        _ = self.installHandler(again: true)
+      }
+    }
     return status == noErr
   }
 
   deinit {
     for ref in refs.values { UnregisterEventHotKey(ref) }
     if let handler { RemoveEventHandler(handler) }
+    if let resignObserver { NotificationCenter.default.removeObserver(resignObserver) }
   }
 
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)

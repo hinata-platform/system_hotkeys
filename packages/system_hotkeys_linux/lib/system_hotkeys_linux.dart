@@ -148,7 +148,8 @@ class SystemHotkeysLinux extends SystemHotkeysPlatform {
     try {
       await portal.configureShortcuts(session);
       return true;
-    } on DBusMethodResponseException {
+    } on DBusMethodResponseException catch (error) {
+      debugPrint('system_hotkeys_linux: no settings opened ($error)');
       return false;
     }
   });

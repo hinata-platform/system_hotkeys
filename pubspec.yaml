@@ -8,6 +8,7 @@ environment:
 workspace:
   - packages/system_hotkeys
   - packages/system_hotkeys/example
+  - packages/system_hotkeys_linux
   - packages/system_hotkeys_macos
   - packages/system_hotkeys_platform_interface
   - packages/system_hotkeys_windows

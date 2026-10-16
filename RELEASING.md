@@ -6,7 +6,7 @@ git push origin v0.1.1
 ```
 
 `.github/workflows/publish.yml` publishes every package whose pubspec carries
-the tag's version, in dependency order: platform interface, macOS, Windows,
+the tag's version, in dependency order: platform interface, Linux, macOS, Windows,
 `system_hotkeys`.
 
 ## One-time setup per package

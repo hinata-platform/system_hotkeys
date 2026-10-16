@@ -17,7 +17,11 @@ class MethodChannelSystemHotkeys extends SystemHotkeysPlatform {
   Stream<HotKeyEvent>? _events;
 
   @override
-  Future<HotKeyResult> register(String id, HotKey hotKey) async {
+  Future<HotKeyResult> register(
+    String id,
+    HotKey hotKey, {
+    String? description,
+  }) async {
     if (!hotKey.hasModifier || !HotKey.isSupportedKey(hotKey.key)) {
       // Released all the same: the caller asked for this id to mean something
       // else now, and it must not go on meaning the old combination.

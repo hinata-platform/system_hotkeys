@@ -24,9 +24,31 @@ abstract class SystemHotkeysPlatform extends PlatformInterface {
     _instance = instance;
   }
 
+  /// What this platform does with a combination; see [HotKeyCapabilities].
+  HotKeyCapabilities get capabilities => const HotKeyCapabilities();
+
   /// Binds [hotKey] under [id]. Binding an [id] again replaces its old
   /// combination; the old one is released even when the new one fails.
-  Future<HotKeyResult> register(String id, HotKey hotKey);
+  ///
+  /// [description] says what the shortcut does, for platforms whose system
+  /// lists it ([HotKeyCapabilities.configureExternally]).
+  Future<HotKeyResult> register(
+    String id,
+    HotKey hotKey, {
+    String? description,
+  });
+
+  /// Binds every entry of [hotKeys] as [register] would; ids not named keep
+  /// what they have. A platform whose system asks the person
+  /// ([HotKeyCapabilities.configureExternally]) asks once for the whole set
+  /// instead of once per shortcut. [descriptions] are by id.
+  Future<Map<String, HotKeyResult>> registerAll(
+    Map<String, HotKey> hotKeys, {
+    Map<String, String> descriptions = const {},
+  }) async => {
+    for (final MapEntry(:key, :value) in hotKeys.entries)
+      key: await register(key, value, description: descriptions[key]),
+  };
 
   /// Releases [id]. Unknown ids are ignored.
   Future<void> unregister(String id);
@@ -36,4 +58,14 @@ abstract class SystemHotkeysPlatform extends PlatformInterface {
 
   /// Presses of bound combinations.
   Stream<HotKeyEvent> get events;
+
+  /// What the system says triggers each bound id, in its own words ("Ctrl+
+  /// Alt+S"), whenever that changes; empty text for an id it bound without
+  /// keys. Only where [HotKeyCapabilities.configureExternally]; elsewhere the
+  /// app's own combination is the trigger and nothing arrives here.
+  Stream<Map<String, String>> get triggers => const Stream.empty();
+
+  /// Opens the system's settings for this app's shortcuts. False where there
+  /// are none to open, or the system is too old to offer them.
+  Future<bool> configure() async => false;
 }

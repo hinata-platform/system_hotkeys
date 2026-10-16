@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 
 /// A modifier key held together with the [HotKey.key].
 ///
-/// [meta] is Command on macOS and the Windows key on Windows.
+/// [meta] is Command on macOS, the Windows key on Windows and the Super (logo)
+/// key on Linux.
 enum HotKeyModifier { control, alt, shift, meta }
 
 /// A key combination the operating system watches for while the app runs,
@@ -79,8 +80,36 @@ enum HotKeyResult {
   conflict,
 
   /// This platform cannot register it: no implementation, a key outside
-  /// [HotKey.isSupportedKey], or a combination without a modifier.
+  /// [HotKey.isSupportedKey], or a combination without a modifier. On Linux
+  /// also a desktop without a GlobalShortcuts portal backend.
   unsupported,
+
+  /// The person turned it down in the system's own dialog. Only where the
+  /// system asks ([HotKeyCapabilities.configureExternally]); asking again is
+  /// up to them, through [SystemHotkeysPlatform.configure].
+  declined,
+}
+
+/// What a platform does with the combinations an app asks for.
+@immutable
+class HotKeyCapabilities {
+  const HotKeyCapabilities({this.configureExternally = false});
+
+  /// The desktop, not the app, decides which keys trigger a shortcut: the
+  /// combination passed to `register` is only a suggestion, the system may
+  /// ask the person first, and they change it in the system's own settings
+  /// ([SystemHotkeysPlatform.configure]). What it settled on arrives through
+  /// [SystemHotkeysPlatform.triggers]. True on Linux (the GlobalShortcuts
+  /// portal), false where the app binds the combination itself.
+  final bool configureExternally;
+
+  @override
+  bool operator ==(Object other) =>
+      other is HotKeyCapabilities &&
+      other.configureExternally == configureExternally;
+
+  @override
+  int get hashCode => configureExternally.hashCode;
 }
 
 /// A registered [HotKey] was pressed. [id] is the one it was registered under.

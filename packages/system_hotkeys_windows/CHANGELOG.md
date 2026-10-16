@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Built on system_hotkeys_platform_interface 0.2.0. No change on this platform.
+
 ## 0.1.2
 
 * The method and event channels belong to the plugin and go with it.

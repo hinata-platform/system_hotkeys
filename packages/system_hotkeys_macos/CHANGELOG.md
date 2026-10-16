@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Built on system_hotkeys_platform_interface 0.2.0. No change on this platform.
+
 ## 0.1.2
 
 * Modifier bits outside the four modifiers, or none of them, are refused natively too, so a caller that skips the Dart checks cannot bind a bare key in every app.

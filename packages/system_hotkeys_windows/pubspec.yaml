@@ -1,6 +1,6 @@
 name: system_hotkeys_windows
 description: The Windows implementation of system_hotkeys, system-wide keyboard shortcuts through RegisterHotKey. No low-level keyboard hook.
-version: 0.1.2
+version: 0.2.0
 repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_windows
 issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
 topics: [hotkeys, shortcuts, windows, keyboard]
@@ -14,7 +14,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  system_hotkeys_platform_interface: ^0.1.0
+  system_hotkeys_platform_interface: ^0.2.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0

@@ -1,17 +1,9 @@
 # system_hotkeys_example
 
-A new Flutter project.
+Binds two shortcuts (and, on macOS, Spotlight's own to show a conflict) and
+lists every press, focused or not. On Linux the desktop decides the keys: the
+list shows what it reports, and "Configure in the system" opens its settings.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter run -d macos   # or windows, linux
+```

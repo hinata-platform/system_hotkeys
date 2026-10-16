@@ -1,9 +1,9 @@
 name: system_hotkeys
-description: System-wide keyboard shortcuts for Flutter desktop apps through the operating system's registration APIs. Conflicts are reported, no Accessibility permission, works sandboxed.
-version: 0.1.0
+description: System-wide keyboard shortcuts for Flutter desktop apps through the operating system's registration APIs and the Linux GlobalShortcuts portal. Conflicts are reported, no Accessibility permission, works sandboxed.
+version: 0.2.0
 repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys
 issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
-topics: [hotkeys, shortcuts, desktop, keyboard]
+topics: [hotkeys, shortcuts, desktop, keyboard, wayland]
 
 resolution: workspace
 
@@ -14,9 +14,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  system_hotkeys_macos: ^0.1.0
-  system_hotkeys_platform_interface: ^0.1.0
-  system_hotkeys_windows: ^0.1.0
+  system_hotkeys_linux: ^0.2.0
+  system_hotkeys_macos: ^0.2.0
+  system_hotkeys_platform_interface: ^0.2.0
+  system_hotkeys_windows: ^0.2.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -27,6 +28,8 @@ dev_dependencies:
 flutter:
   plugin:
     platforms:
+      linux:
+        default_package: system_hotkeys_linux
       macos:
         default_package: system_hotkeys_macos
       windows:

@@ -13,9 +13,10 @@ The desktop, not the app, decides the keys. `SystemHotkeys.capabilities.configur
 is true here, and:
 
 - The combination passed to `register` goes along as a suggestion
-  (`preferred_trigger`). GNOME shows a dialog the first time; KDE binds right
-  away. What the desktop settled on arrives through `SystemHotkeys.triggers`,
-  in its own words.
+  (`preferred_trigger`). GNOME and KDE Plasma 6 show a dialog the first time;
+  until the person confirms it, KDE keeps the suggestion as the default and
+  binds the id without keys (an empty trigger). What the desktop settled on
+  arrives through `SystemHotkeys.triggers`, in its own words.
 - Bind the whole set with `SystemHotkeys.registerAll`: the portal binds a
   session once, so every change binds the set again in a new session, and the
   desktop asks only about ids it has not seen.

@@ -12,7 +12,11 @@ class _FakePlatform extends SystemHotkeysPlatform
   HotKeyResult next = HotKeyResult.bound;
 
   @override
-  Future<HotKeyResult> register(String id, HotKey hotKey) async {
+  Future<HotKeyResult> register(
+    String id,
+    HotKey hotKey, {
+    String? description,
+  }) async {
     bound.remove(id);
     if (next == HotKeyResult.bound) bound[id] = hotKey;
     return next;
@@ -53,5 +57,23 @@ void main() {
     final first = SystemHotkeys.events.first;
     platform.presses.add(const HotKeyEvent('focus'));
     expect(await first, const HotKeyEvent('focus'));
+  });
+
+  test('binds a set one by one where the system does not ask', () async {
+    const other = HotKey(
+      key: PhysicalKeyboardKey.keyS,
+      modifiers: {HotKeyModifier.control, HotKeyModifier.alt},
+    );
+    expect(await SystemHotkeys.registerAll({'focus': combo, 'toggle': other}), {
+      'focus': HotKeyResult.bound,
+      'toggle': HotKeyResult.bound,
+    });
+    expect(platform.bound, {'focus': combo, 'toggle': other});
+  });
+
+  test('platforms bind themselves unless they say otherwise', () async {
+    expect(SystemHotkeys.capabilities.configureExternally, isFalse);
+    expect(await SystemHotkeys.configure(), isFalse);
+    expect(await SystemHotkeys.triggers.isEmpty, isTrue);
   });
 }

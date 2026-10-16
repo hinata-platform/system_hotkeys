@@ -23,6 +23,9 @@ switch (result) {
   case HotKeyResult.unsupported:
     // Not on this platform, or a combination without a modifier.
     break;
+  case HotKeyResult.declined:
+    // Linux: the person said no in the desktop's dialog.
+    break;
 }
 
 SystemHotkeys.events.listen((event) {
@@ -38,15 +41,27 @@ await SystemHotkeys.unregister('toggle');
 |---|---|---|
 | macOS 10.15+ | `RegisterEventHotKey` | enabled system shortcuts (`CopySymbolicHotKeys`) and combinations this app already holds |
 | Windows 10+ | `RegisterHotKey` | any combination another app or the system holds (`ERROR_HOTKEY_ALREADY_REGISTERED`) |
+| Linux (KDE Plasma 5.27+, GNOME 48+) | `org.freedesktop.portal.GlobalShortcuts` | the desktop decides the keys, see below |
 | others | — | `register` answers `unsupported` |
 
-Neither platform sees a key outside the bound combinations, so nothing asks for
+No platform sees a key outside the bound combinations, so nothing asks for
 Accessibility or Input Monitoring, and the plugin works in the macOS App
 Sandbox.
 
 **One limit on macOS:** a shortcut another *app* registered cannot be seen from
 a sandboxed process, and `RegisterEventHotKey` accepts it. Offer the user a
 "press it now" check after binding; it is the only proof that works everywhere.
+
+## Linux
+
+The desktop decides the keys (`SystemHotkeys.capabilities.configureExternally`).
+Your combination is a suggestion; the desktop may ask the person first, binds
+what it settled on and reports it through `SystemHotkeys.triggers`.
+`SystemHotkeys.configure()` opens its shortcut settings. Bind the whole set with
+`registerAll`, so the person is asked once. Sway and other wlroots compositors
+have no portal backend and answer `unsupported`. An app outside a Snap or
+Flatpak names its installed `.desktop` file, see
+[`system_hotkeys_linux`](https://pub.dev/packages/system_hotkeys_linux).
 
 ## Keys
 

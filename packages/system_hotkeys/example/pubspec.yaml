@@ -11,10 +11,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  system_hotkeys: ^0.1.0
+  system_hotkeys: ^0.2.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true

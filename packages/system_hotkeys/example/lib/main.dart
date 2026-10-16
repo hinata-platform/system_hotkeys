@@ -48,8 +48,13 @@ class _HotkeysDemoState extends State<HotkeysDemo> {
   };
 
   final _results = <String, HotKeyResult>{};
+  var _triggers = <String, String>{};
   final _presses = <String>[];
   StreamSubscription<HotKeyEvent>? _subscription;
+  StreamSubscription<Map<String, String>>? _triggerSubscription;
+
+  /// On Linux the desktop decides the keys and reports them here.
+  final _external = SystemHotkeys.capabilities.configureExternally;
 
   @override
   void initState() {
@@ -63,20 +68,27 @@ class _HotkeysDemoState extends State<HotkeysDemo> {
         ),
       );
     });
+    _triggerSubscription = SystemHotkeys.triggers.listen(
+      (triggers) => setState(() => _triggers = triggers),
+    );
     _bind();
   }
 
+  /// All at once: on Linux the desktop asks about the whole set in one
+  /// dialog.
   Future<void> _bind() async {
-    for (final MapEntry(:key, :value) in _combos.entries) {
-      final result = await SystemHotkeys.register(key, value);
-      debugPrint('$key: ${result.name}');
-      if (mounted) setState(() => _results[key] = result);
-    }
+    final results = await SystemHotkeys.registerAll(
+      _combos,
+      descriptions: {for (final id in _combos.keys) id: 'Example: $id'},
+    );
+    debugPrint('$results');
+    if (mounted) setState(() => _results.addAll(results));
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
+    _triggerSubscription?.cancel();
     SystemHotkeys.unregisterAll();
     super.dispose();
   }
@@ -88,8 +100,16 @@ class _HotkeysDemoState extends State<HotkeysDemo> {
       for (final MapEntry(:key, :value) in _combos.entries)
         ListTile(
           title: Text(key),
-          subtitle: Text('$value'),
+          subtitle: Text(_external ? (_triggers[key] ?? '') : '$value'),
           trailing: Text(_results[key]?.name ?? '…'),
+        ),
+      if (_external)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: SystemHotkeys.configure,
+            child: const Text('Configure in the system'),
+          ),
         ),
       const Divider(),
       for (final press in _presses) Text(press),

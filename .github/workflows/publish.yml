@@ -53,7 +53,7 @@ jobs:
         run: |
           set -e
           version="${GITHUB_REF_NAME#v}"
-          for pkg in system_hotkeys_platform_interface system_hotkeys_macos system_hotkeys_windows system_hotkeys; do
+          for pkg in system_hotkeys_platform_interface system_hotkeys_linux system_hotkeys_macos system_hotkeys_windows system_hotkeys; do
             have="$(grep -m1 '^version:' "packages/$pkg/pubspec.yaml" | awk '{print $2}')"
             if [ "$have" = "$version" ]; then
               (cd "packages/$pkg" && flutter pub publish --force)

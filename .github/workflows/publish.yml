@@ -37,8 +37,13 @@ jobs:
         with:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
-      - name: Hand the OIDC token to pub
+      - run: flutter pub get
+      # The OIDC token lives in this one step only, never in $GITHUB_ENV, so no
+      # other step of the job can read it.
+      - name: Publish what the tag names, in dependency order
         run: |
+          set -e
+          version="${GITHUB_REF_NAME#v}"
           PUB_TOKEN="$(curl --retry 5 --retry-connrefused -sSLf \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://pub.dev" \
             -H "User-Agent: actions/oidc-client" \
@@ -46,13 +51,8 @@ jobs:
             | jq -r '.value')"
           [ -n "$PUB_TOKEN" ] && [ "$PUB_TOKEN" != "null" ] || { echo "::error::no token"; exit 1; }
           echo "::add-mask::$PUB_TOKEN"
-          echo "PUB_TOKEN=$PUB_TOKEN" >> "$GITHUB_ENV"
+          export PUB_TOKEN
           dart pub token add https://pub.dev --env-var PUB_TOKEN
-      - run: flutter pub get
-      - name: Publish what the tag names, in dependency order
-        run: |
-          set -e
-          version="${GITHUB_REF_NAME#v}"
           for pkg in system_hotkeys_platform_interface system_hotkeys_linux system_hotkeys_macos system_hotkeys_windows system_hotkeys; do
             have="$(grep -m1 '^version:' "packages/$pkg/pubspec.yaml" | awk '{print $2}')"
             if [ "$have" = "$version" ]; then

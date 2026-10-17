@@ -105,7 +105,7 @@ class SystemHotkeysLinux extends SystemHotkeysPlatform {
   }) => _serial(() async {
     final refused = <String>{};
     for (final MapEntry(key: id, value: hotKey) in hotKeys.entries) {
-      if (!hotKey.hasModifier || !HotKey.isSupportedKey(hotKey.key)) {
+      if (!hotKey.hasModifier || preferredTrigger(hotKey) == null) {
         _wanted.remove(id);
         refused.add(id);
       } else {
@@ -169,7 +169,10 @@ class SystemHotkeysLinux extends SystemHotkeysPlatform {
       session = await portal.createSession();
       (code, shortcuts) = await portal.bindShortcuts(session, {
         for (final MapEntry(key: id, value: w) in _wanted.entries)
-          id: (description: w.description, trigger: preferredTrigger(w.hotKey)),
+          id: (
+            description: w.description,
+            trigger: preferredTrigger(w.hotKey)!,
+          ),
       });
     } on Object catch (error) {
       // GNOME refuses a host app it cannot tie to a `.desktop` file ("An app
@@ -278,9 +281,10 @@ class SystemHotkeysLinux extends SystemHotkeysPlatform {
 
   /// [hotKey] in the syntax of the XDG shortcuts specification, the
   /// `preferred_trigger` the portal takes: modifiers, then an xkb keysym
-  /// name, joined by `+` (`CTRL+ALT+s`, `LOGO+SHIFT+F1`).
+  /// name, joined by `+` (`CTRL+ALT+s`, `LOGO+SHIFT+F1`). Null for a key
+  /// without a name here, which [registerAll] answers as unsupported.
   @visibleForTesting
-  static String preferredTrigger(HotKey hotKey) {
+  static String? preferredTrigger(HotKey hotKey) {
     const names = {
       HotKeyModifier.control: 'CTRL',
       HotKeyModifier.alt: 'ALT',
@@ -294,8 +298,9 @@ class SystemHotkeysLinux extends SystemHotkeysPlatform {
       0x27 => '0',
       >= 0x3a && <= 0x45 => 'F${usage - 0x3a + 1}',
       0x2c => 'space',
-      _ => throw ArgumentError.value(hotKey, 'hotKey', 'unsupported key'),
+      _ => null,
     };
+    if (key == null) return null;
     return [
       for (final m in HotKeyModifier.values)
         if (hotKey.modifiers.contains(m)) names[m]!,

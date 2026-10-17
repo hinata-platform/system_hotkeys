@@ -167,8 +167,30 @@ void main() {
     expect(await hotkeys.configure(), isFalse);
   });
 
+  test('names every key the platforms support, and nothing else', () {
+    for (final usage in HotKey.supportedUsages) {
+      final key = PhysicalKeyboardKey(usage);
+      expect(
+        SystemHotkeysLinux.preferredTrigger(
+          HotKey(key: key, modifiers: {HotKeyModifier.control}),
+        ),
+        isNotNull,
+        reason: usage.toRadixString(16),
+      );
+    }
+    expect(
+      SystemHotkeysLinux.preferredTrigger(
+        HotKey(
+          key: PhysicalKeyboardKey.arrowUp,
+          modifiers: {HotKeyModifier.control},
+        ),
+      ),
+      isNull,
+    );
+  });
+
   test('suggests triggers in the XDG shortcuts syntax', () {
-    String trigger(PhysicalKeyboardKey key, Set<HotKeyModifier> modifiers) =>
+    String? trigger(PhysicalKeyboardKey key, Set<HotKeyModifier> modifiers) =>
         SystemHotkeysLinux.preferredTrigger(
           HotKey(key: key, modifiers: modifiers),
         );

@@ -1,6 +1,6 @@
 name: system_hotkeys_linux
 description: The Linux implementation of system_hotkeys, system-wide keyboard shortcuts through the GlobalShortcuts desktop portal. Pure Dart on D-Bus; no key grab, works on Wayland.
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/hinata-platform/system_hotkeys/tree/main/packages/system_hotkeys_linux
 issue_tracker: https://github.com/hinata-platform/system_hotkeys/issues
 topics: [hotkeys, shortcuts, linux, wayland, keyboard]

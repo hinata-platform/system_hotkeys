@@ -210,8 +210,11 @@ class GlobalShortcutsPortal {
     }
   }
 
+  // Only the portal's own answer: another client on the session bus could
+  // otherwise send a Response to the request's path first.
   Stream<DBusSignal> _responses(DBusObjectPath path) => DBusSignalStream(
     _client,
+    sender: busName,
     interface: _request,
     name: 'Response',
     path: path,
